@@ -1,4 +1,5 @@
 Flask==0.10.1
+Flask-Bootstrap==3.3.5.7
 Flask-SQLAlchemy==2.1
 Flask-WTF==0.12
 Jinja2==2.8
@@ -7,6 +8,8 @@ SQLAlchemy==1.0.12
 WTForms==2.1
 Werkzeug==0.11.8
 argparse==1.2.1
+dominate==2.2.0
 itsdangerous==0.24
 psycopg2==2.6.1
+visitor==0.1.2
 wsgiref==0.1.2

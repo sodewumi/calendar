@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class Calendar(object):
+class Calendar(db.Model):
     """Calendar class"""
 
     __tablename__ = "calendars"
@@ -13,7 +13,7 @@ class Calendar(object):
     url = db.Column(db.Integer, primary_key=True, autoincrement=True)
     events = db.relationship('Event', backref='events')
 
-class Event(object):
+class Event(db.Model):
     """Event Class"""
 
     __tablename__ = "events"
