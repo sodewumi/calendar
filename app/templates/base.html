@@ -15,3 +15,9 @@
     <link rel="stylesheet" type="text/css"
           href="{{url_for('static', filename='styles.css')}}">
 {% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+	<script type="text/javascript"
+		src="{{url_for('static', filename='main.js')}}"></script>
+{% endblock %}
