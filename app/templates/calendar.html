@@ -1,8 +1,5 @@
 {%- extends "base.html" %}
 
-{# Loads some of the macros included with Flask-Bootstrap. We are using the
-   utils module here to automatically render Flask's flashed messages in a
-   bootstrap friendly manner #}
 {% import "bootstrap/utils.html" as utils %}
 
 
@@ -11,13 +8,25 @@
   {%- with messages = get_flashed_messages(with_categories=True) %}
   {%- if messages %}
     <div class="row">
-      <div class="col-md-12">s
+      <div class="col-md-12">
         {{utils.flashed_messages(messages)}}
       </div>
     </div>
   {%- endif %}
   {%- endwith %}
 
-  <a href="/calendar" class="btn btn-default">Create New Calendar</a>
+  <h1 class="text-center">April 2016</h1>
+  <button>Previous</button>
+  <button>Next</button>
+  
+  {% for i in range(5) %}
+    <div  class="row row--calendar">
+      {% for i in range(7) %}
+        <div class="col-md-1">{{i+1}}</div>
+      {% endfor %}      
+    </div>
+  {% endfor %}
   </div>
+
+
 {%- endblock %}
