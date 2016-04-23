@@ -18,6 +18,17 @@
   {%- endif %}
   {%- endwith %}
 
-  <a href="/calendar" class="btn btn-default">Create New Calendar</a>
+  <form method="POST">
+    {{ create_calendar_form.hidden_tag() }}
+
+    {{create_calendar_form.url.label}} {{ create_calendar_form.url() }}
+    {% for error in create_calendar_form.url.errors %}
+      {{ error }}
+    {% endfor %}<br>
+
+    {{ create_calendar_form.submit() }}
+  </form>
+
   </div>
+
 {%- endblock %}

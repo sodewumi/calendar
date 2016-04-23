@@ -1,4 +1,5 @@
-import os 
+import datetime
+import os
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -10,8 +11,19 @@ class Calendar(db.Model):
 
     __tablename__ = "calendars"
 
-    url = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    url = db.Column(db.String(30), primary_key=True)
+    date_created_timestamp = db.Column(db.DateTime(), nullable=False)
     events = db.relationship('Event', backref='events')
+
+    def __init__(self, url):
+        self.url = url
+        self.date_created_timestamp = datetime.datetime.utcnow()
+
+    def __repr__(self):
+        return '<Calendar(url=%s, date_created_timestamp=%r)>' % (
+            self.url,
+            self.date_created_timestamp
+        )
 
 class Event(db.Model):
     """Event Class"""
@@ -22,7 +34,7 @@ class Event(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
     title = db.Column(db.String(100), nullable=False)
-    calendar_url = db.Column(db.Integer, db.ForeignKey('calendars.url'))
+    calendar_url = db.Column(db.String, db.ForeignKey('calendars.url'))
 
 def connect_to_database(app):
     """Connect the database to our Flask app."""
