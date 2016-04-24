@@ -38,26 +38,42 @@
         <h2 class="modal-title">Add Event</h2>
       </div>
 
-      <div class="modal-body">
+      <div class="modal-body"
         <form method="POST">
-          {{ add_event_form.hidden_tag() }}
+          <div class="form-group">
+            {{add_event_form.event_title.label}}
+            {{ add_event_form.event_title(class_="form-control") }}
+          </div>
 
-          {{add_event_form.event_title.label}} {{ add_event_form.event_title() }}
-          {% for error in add_event_form.event_title.errors %}
-            {{ error }}
-          {% endfor %}<br>
-          {{add_event_form.day.label}} {{ add_event_form.day() }}
-          {% for error in add_event_form.day.errors %}
-            {{ error }}
-          {% endfor %}<br>
-          {{add_event_form.start_time.label}} {{ add_event_form.start_time() }}
-          {% for error in add_event_form.start_time.errors %}
-            {{ error }}
-          {% endfor %}<br>
-          {{add_event_form.end_time.label}} {{ add_event_form.end_time() }}
-          {% for error in add_event_form.end_time.errors %}
-            {{ error }}
-          {% endfor %}<br>
+          <div class="form-group">
+            {{add_event_form.day.label}}
+            <div class='input-group date' id='day-input'>
+                {{ add_event_form.day(class_="form-control") }}
+                <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            {{add_event_form.start_time.label}}
+            <div class='input-group date' id='start-time-input'>
+                {{ add_event_form.start_time(class_="form-control") }}
+                <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            {{add_event_form.end_time.label}}
+            <div class='input-group date' id='end-time-input'>
+                {{ add_event_form.end_time(class_="form-control") }}
+                <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div>
+          </div>
 
           {{ add_event_form.submit() }}
         </form>
