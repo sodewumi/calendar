@@ -36,10 +36,12 @@ def index():
 @app.route("/calendar/<calendar_url>")
 def calendar(calendar_url):
     add_event_form = AddEventForm()
+
     return render_template(
         'calendar.html',
-        add_event_form = add_event_form
+        add_event_form = add_event_form,
     )
+
 @app.route("/create_event", methods="POST")
 def create_event():
     pass
