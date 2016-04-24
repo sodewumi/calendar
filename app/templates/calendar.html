@@ -39,7 +39,28 @@
       </div>
 
       <div class="modal-body">
-        <p>Add Event</p>
+        <form method="POST">
+          {{ add_event_form.hidden_tag() }}
+
+          {{add_event_form.event_title.label}} {{ add_event_form.event_title() }}
+          {% for error in add_event_form.event_title.errors %}
+            {{ error }}
+          {% endfor %}<br>
+          {{add_event_form.day.label}} {{ add_event_form.day() }}
+          {% for error in add_event_form.day.errors %}
+            {{ error }}
+          {% endfor %}<br>
+          {{add_event_form.start_time.label}} {{ add_event_form.start_time() }}
+          {% for error in add_event_form.start_time.errors %}
+            {{ error }}
+          {% endfor %}<br>
+          {{add_event_form.end_time.label}} {{ add_event_form.end_time() }}
+          {% for error in add_event_form.end_time.errors %}
+            {{ error }}
+          {% endfor %}<br>
+
+          {{ add_event_form.submit() }}
+        </form>
       </div>
 
       <div class="modal-footer">

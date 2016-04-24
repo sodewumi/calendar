@@ -3,7 +3,7 @@ import jinja2
 from flask import flash, Flask, redirect, render_template
 from flask.ext.bootstrap import Bootstrap
 
-from forms import CreateCalendarForm
+from forms import AddEventForm, CreateCalendarForm
 from logic import calender_exists, create_calendar
 from model import connect_to_database
 
@@ -35,7 +35,14 @@ def index():
 
 @app.route("/calendar/<calendar_url>")
 def calendar(calendar_url):
-    return render_template('calendar.html')
+    add_event_form = AddEventForm()
+    return render_template(
+        'calendar.html',
+        add_event_form = add_event_form
+    )
+@app.route("/create_event", methods="POST")
+def create_event():
+    pass
 
 @app.errorhandler(404)
 def page_not_found(err):
