@@ -108,8 +108,6 @@ $('.row--calendar').on("click", 'div', function () {
 
 });
 
-
-
 $(function () {
     $('#day-input').datetimepicker({
         format: 'MM/DD/YYYY'
@@ -124,3 +122,52 @@ $(function () {
     });
 });
 
+// // sockets
+var socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
+socket.on('connect', function() {
+    socket.emit('my response', {data: 'I\'m connected!'});
+});
+
+socket.on('my response', function(msg) {
+    console.log(msg)
+});
+
+$("#add-event-form").on("submit", function (evt) {
+    evt.preventDefault();
+    var titleVal = $('#event_title').val()
+    // mutator
+    var dateWithTimeZone = $('#day-input').data("DateTimePicker").date()
+    // var dateWithoutTimeZone = dateWithTimeZone.utc()
+
+    var startTimestampVal = $('#start-time-input').data("DateTimePicker").date()
+    var endTimestampVal = $('#end-time-input').data("DateTimePicker").date();
+
+    // these are objects not timestamps. Are hour and minute mutators?
+    var startTimestampTimeZone = dateWithTimeZone.hour(
+            startTimestampVal.hour()
+        ).minute(
+            startTimestampVal.minute()
+        );
+
+    var endTimestampTimeZone = dateWithTimeZone.hour(
+            endTimestampVal.hour()
+        ).minute(
+            endTimestampVal.minute()
+        );
+
+    var startTimestampUTC = startTimestampTimeZone.utc().format();
+    var endTimestampUTC = endTimestampTimeZone.utc().format();
+
+
+    var foo = {data: {
+        startTimestampUTC: startTimestampUTC,
+        endTimestampUTC: endTimestampUTC,
+        eventTitle: titleVal
+    }};
+
+    socket.emit('add calendar event', foo);
+})
+
+socket.on('add calendar event response', function(msg) {
+    console.log(msg)
+});

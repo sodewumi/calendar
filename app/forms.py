@@ -8,6 +8,7 @@ class CreateCalendarForm(Form):
 # (TODO) add error handeling if event is longer than a day or start_time is ;ess
 #  than end_time
 class AddEventForm(Form):
+	csrf = False
 	event_title = StringField('Title', [validators.Required()])
 	day = DateTimeField('Day', [validators.Required()])
 	start_time = DateTimeField('Event Start', [validators.Required()])

@@ -12,17 +12,11 @@ class Calendar(db.Model):
     __tablename__ = "calendars"
 
     url = db.Column(db.String(30), primary_key=True)
-    date_created_timestamp = db.Column(db.DateTime(), nullable=False)
-    events = db.relationship('Event', backref='events')
-
-    def __init__(self, url):
-        self.url = url
-        self.date_created_timestamp = datetime.datetime.utcnow()
+    events = db.relationship('Event', backref='calendar')
 
     def __repr__(self):
-        return '<Calendar(url=%s, date_created_timestamp=%r)>' % (
+        return '<Calendar(url=%s)>' % (
             self.url,
-            self.date_created_timestamp
         )
 
 class Event(db.Model):
@@ -35,6 +29,15 @@ class Event(db.Model):
     end_time = db.Column(db.DateTime, nullable=False)
     title = db.Column(db.String(100), nullable=False)
     calendar_url = db.Column(db.String, db.ForeignKey('calendars.url'))
+
+    def __repr__(self):
+        return '<Event(event_id=%r, start_time=%r, end_time=%r, title=%r, "calendar_url="%r)>' % (
+            self.event_id,
+            self.start_time,
+            self.end_time,
+            self.title,
+            self.calendar_url,
+        )
 
 def connect_to_database(app):
     """Connect the database to our Flask app."""
@@ -49,4 +52,4 @@ if __name__ == "__main__":
     from flask import Flask
 
     app = Flask(__name__)
-    connect_to_db(app)
+    connect_to_database(app)
