@@ -30,7 +30,7 @@ def create_event(
 	db.session.add(new_event)
 	db.session.commit()
 
-	return {"1":"2"}
+	return new_event
 
 def get_events_for_calendar():
 	pass

@@ -42,25 +42,44 @@ def calendar(calendar_url):
     return render_template(
         'calendar.html',
         add_event_form = add_event_form,
+        calendar_url = calendar_url,
     )
 
 @app.errorhandler(404)
 def page_not_found(err):
     return render_template('404.html'), 404
 
-@socketio.on('connect', namespace='/chat')
-def test_connect():
-    emit('my response', {'data': 'Connected'})
+@socketio.on('connect', namespace='/calendar_app')
+def connect_to_calendar():
 
-@socketio.on('add calendar event', namespace='/chat')
+    emit('connection response', {'msg':"user has connected"})
+
+# TODO: change name of event
+@socketio.on('join room', namespace='/calendar_app')
+def join_calendar_room(event):
+
+    join_room(event['calendarURL'])
+    emit('join room response', {'msg':"user has joined room " +event['calendarURL']})
+
+@socketio.on('add calendar event', namespace='/calendar_app')
 def add_calendar_event(event):
-    created_event = create_event(
+
+    created_event_obj = create_event(
         event['data']['startTimestampUTC'],
         event['data']['endTimestampUTC'],
         event['data']['eventTitle'],
-        'foo',
+        event['data']['calendarURL'],
     )
-    emit('add calendar event response', {'data': 'Connectedss'})
+
+    created_event = {
+        'event_id': created_event_obj.event_id,
+        'start_time': created_event_obj.start_time.isoformat(),
+        'end_time': created_event_obj.end_time.isoformat(),
+        'title': created_event_obj.title,
+        'calendar_url': created_event_obj.calendar_url,
+    }
+
+    emit('add calendar event response', created_event)
 
 
 if __name__ == "__main__":

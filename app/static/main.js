@@ -123,14 +123,13 @@ $(function () {
 });
 
 // // sockets
-var socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
+var socket = io.connect('http://' + document.domain + ':' + location.port + '/calendar_app');
 socket.on('connect', function() {
-    socket.emit('my response', {data: 'I\'m connected!'});
+    var calendarURL = $("#calendar").data("calendar-url")
+    // Todo move to function if used again
+    socket.emit("join room", {calendarURL: calendarURL})
 });
 
-socket.on('my response', function(msg) {
-    console.log(msg)
-});
 
 $("#add-event-form").on("submit", function (evt) {
     evt.preventDefault();
@@ -143,13 +142,13 @@ $("#add-event-form").on("submit", function (evt) {
     var endTimestampVal = $('#end-time-input').data("DateTimePicker").date();
 
     // these are objects not timestamps. Are hour and minute mutators?
-    var startTimestampTimeZone = dateWithTimeZone.hour(
+    var startTimestampTimeZone = dateWithTimeZone.clone().hour(
             startTimestampVal.hour()
         ).minute(
             startTimestampVal.minute()
         );
 
-    var endTimestampTimeZone = dateWithTimeZone.hour(
+    var endTimestampTimeZone = dateWithTimeZone.clone().hour(
             endTimestampVal.hour()
         ).minute(
             endTimestampVal.minute()
@@ -158,11 +157,13 @@ $("#add-event-form").on("submit", function (evt) {
     var startTimestampUTC = startTimestampTimeZone.utc().format();
     var endTimestampUTC = endTimestampTimeZone.utc().format();
 
+    var calendarURL = $("#calendar").data("calendar-url")
 
     var foo = {data: {
         startTimestampUTC: startTimestampUTC,
         endTimestampUTC: endTimestampUTC,
-        eventTitle: titleVal
+        eventTitle: titleVal,
+        calendarURL: calendarURL
     }};
 
     socket.emit('add calendar event', foo);
@@ -171,3 +172,11 @@ $("#add-event-form").on("submit", function (evt) {
 socket.on('add calendar event response', function(msg) {
     console.log(msg)
 });
+
+socket.on('join room response', function(msg) {
+    console.log(msg)
+});
+
+// socket.on('leave room status', function(msg) {
+//     console.log(msg)
+// });
