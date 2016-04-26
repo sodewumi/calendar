@@ -14,10 +14,10 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Then, run the server:
+Then, run the server in the app/ directory:
 
 ```
-python server.py
+python app.py
 ```
 
 Navigate to `localhost:5000` in your browser to start using the Calendar.
