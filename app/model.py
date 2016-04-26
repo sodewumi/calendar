@@ -2,6 +2,7 @@ import datetime
 import os
 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import aliased, relationship
 
 
 db = SQLAlchemy()
@@ -29,6 +30,9 @@ class Event(db.Model):
     end_time = db.Column(db.DateTime, nullable=False)
     title = db.Column(db.String(100), nullable=False)
     calendar_url = db.Column(db.String, db.ForeignKey('calendars.url'))
+    parent_id = db.Column(db.Integer, db.ForeignKey('events.event_id'))
+    parent = db.relationship("Event", remote_side=event_id)
+
 
     def __repr__(self):
         return '<Event(event_id=%r, start_time=%r, end_time=%r, title=%r, "calendar_url="%r)>' % (
