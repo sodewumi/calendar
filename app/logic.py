@@ -1,6 +1,7 @@
 import datetime
 
-from model import db, Calendar, Event
+from model import Calendar, connect_to_database, db, Event
+
 
 def create_calendar(calendar_url):
 	new_calendar = Calendar(url = calendar_url)
@@ -32,56 +33,67 @@ def create_event(
 
 	return new_event
 
-def get_overlapping_events_in_calendar():
-	event_alias = aliased(Event)
-	event_alias1 = aliased(Event)
-	q= db.session.query(event_alias).filter(event_alias.calendar_url=='foo').\
-	                join(event_alias1).\
-	                filter(event_alias.start_time <= event_alias1.end_time).\
-	                filter(event_alias.end_time >= event_alias1.start_time).\
-	                all()
-	print q
+def get_overlapping_events_object(
+	calendar_url,
+	start_time,
+	end_time
+):
+	event_alias = db.aliased(Event)
 
-def get_calendar():
-	pass
+	return db.session.query(
+		Event.event_id
+	).join(
+        event_alias,
+        Event.event_id != event_alias.event_id
+    ).filter(
+        Event.start_time <= event_alias.end_time,
+        Event.end_time >= event_alias.start_time,
+        Event.calendar_url == calendar_url,
+        event_alias.calendar_url == calendar_url,
+        Event.start_time >= start_time,
+        Event.end_time <= end_time,
+    ).group_by(
+    	Event.event_id
+    )
 
-# TODO: MOVE TO functions
-# event_alias1 = aliased(Event)
+def get_overlapping_events_in_calendar(
+	calendar_url,
+	start_time,
+	end_time
+):
+	overlapping_events_object = get_overlapping_events_object(
+		calendar_url,
+		start_time,
+		end_time
+	)
+	
+	return overlapping_events_object.all()
 
-# # get all overlapping events
-# qa = db.session.query(Event.event_id).join(
-#         event_alias1,
-#         Event.event_id != event_alias1.event_id
-#     ).filter(
-#         Event.start_time <= event_alias1.end_time,
-#         Event.end_time >= event_alias1.start_time,
-#         Event.calendar_url == "foo",
-#         event_alias1.calendar_url == "foo",
-#         Event.start_time >= datetime.datetime(2012, 9, 1, 0, 0),
-#         Event.end_time <= datetime.datetime(2012, 9, 30, 0, 0),
-#     ).group_by(Event.event_id).all()
+def get_non_overlapping_events_in_calendar(
+	calendar_url,
+	start_time,
+	end_time
+):
+	event_alias1 = db.aliased(Event)
 
-# # overlapping object
-# qc = db.session.query(Event.event_id).join(
-#         event_alias1,
-#         Event.event_id != event_alias1.event_id
-#     ).filter(
-#         Event.start_time <= event_alias1.end_time,
-#         Event.end_time >= event_alias1.start_time,
-#         Event.calendar_url == "foo",
-#         event_alias1.calendar_url == "foo",
-#         Event.start_time >= datetime.datetime(2012, 9, 1, 0, 0),
-#         Event.end_time <= datetime.datetime(2012, 9, 30, 0, 0),
-#     )
+	overlapping_events_object = get_overlapping_events_object(
+		calendar_url,
+		start_time,
+		end_time
+	)
 
-# # get all non-oeverlapping events
-# qb = db.session.query(Event.event_id).filter(
-#     ~Event.event_id.in_(qc),
-#     Event.calendar_url == "foo",
-#     event_alias1.calendar_url == "foo",
-#     Event.start_time >= datetime.datetime(2012, 9, 1, 0, 0),
-#     Event.end_time <= datetime.datetime(2012, 9, 30, 0, 0),
-# ).group_by(Event.event_id).all()
+	return db.session.query(
+		Event.event_id
+	).filter(
+	    ~Event.event_id.in_(overlapping_events_object),
+	    Event.calendar_url == calendar_url,
+	    event_alias1.calendar_url == calendar_url,
+        Event.start_time >= start_time,
+        Event.end_time <= end_time,
+	).group_by(
+		Event.event_id
+	).all()
+
 
 # # edit event
 # # datetime value is obj's datetime
@@ -122,5 +134,9 @@ def get_calendar():
 #         )
 
 #     )
+if __name__ == "__main__":
+    from flask import Flask
 
+    app = Flask(__name__)
+    connect_to_database(app)
 

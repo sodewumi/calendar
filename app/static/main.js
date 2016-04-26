@@ -82,11 +82,7 @@ var CalendarModule = (function (moment) {
 
     return calendarObj
 
-
 })(moment);
-
-
-
 
 $(document).ready(function () {
     function buildDisplayCalendar () {
