@@ -114,11 +114,11 @@ def add_calendar_event(event):
         event['data']['calendarURL'],
     )
     calendar_event_dict = {}
-
+    print event
     print events_in_calendar, "#############################"
     for foo in events_in_calendar:
         day = foo.start_time.day
-        event = {
+        calendar_event = {
             'day': foo.start_time.day,
             'title': foo.title,
             'startTimestampUTC': foo.start_time.isoformat(),
@@ -128,7 +128,7 @@ def add_calendar_event(event):
         }
 
         calendar_event_dict.setdefault(day, [])
-        calendar_event_dict[day].append(event)
+        calendar_event_dict[day].append(calendar_event)
 
     create_event_json = json.dumps(calendar_event_dict)
 

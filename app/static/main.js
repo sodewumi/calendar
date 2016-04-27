@@ -166,13 +166,12 @@ $(document).ready(function () {
         for (var key in events) {
 
           if (events.hasOwnProperty(key)) {
-            console.log(events[key])
                 var $currentDate  = $("#date"+key).parent()
 
-                for(var i=0; i<events[key].length; i++) {
+                for(var i=events[key].length-1; i>-1; i--) {
                     anEvent = "<p>";
-                    anEvent += events[key][i]["startTimestampUTC"].clone().format("h:mm") + " : " +
-                       events[key][i]["endTimestampUTC"].clone().format("h:mm") + " - " +
+                    anEvent += events[key][i]["startTimestampUTC"].clone().format("h:mm a") + " : " +
+                       events[key][i]["endTimestampUTC"].clone().format("h:mm a") + " - " +
                        events[key][i]["title"] + "</p>"
 
                     if (events[key][i]['overlap'] === true) {
@@ -184,25 +183,6 @@ $(document).ready(function () {
 
           }
         }
-    }
-
-    function update_calendar(calendarEvent, key) {
-
-        var $currentDate  = $("#date"+key).parent()
-
-        for(var i=0; i<calendarEvent[key].length; i++) {
-            calendarEvent = "<p>";
-            calendarEvent += calendarEvent[key][i]["startTimestampUTC"] + " : " +
-               calendarEvent[key][i]["endTimestampUTC"] + " - " +
-               calendarEvent[key][i]["title"] + "</p>"
-
-            if (calendarEvent[key][i]['overlap'] === true) {
-                $(calendarEvent).appendTo("#date"+key).addClass('overlap')
-            } else {
-                $currentDate.append(anEvent)
-            }
-        } 
-
     }
 
     $('#calendar').on('click', '.dated', function () {
@@ -263,13 +243,15 @@ $(document).ready(function () {
             startOfDay: CalendarModule.startOfDay1(startDatetimeObj),
             endOfDay: CalendarModule.endOfDay1(endDatetimeObj)
         }};
+        $('#event_title').val("");
+        $('#start-time-input').find("input").val("");
+        $('#end-time-input').find("input").val("");
         $('#eventModal').modal('hide');
         socket.emit('add calendar event', eventObj);
     });
 
     socket.on('connect', function() {
         var calendarURL = $("#calendar").data("calendar-url");
-                console.log(calendarURL)
         console.log("#")
         var startMonthTimestampUTC = CalendarModule.startOfMonth1()
         var endMonthTimestampUTC = CalendarModule.endOfMonth1()
@@ -287,7 +269,8 @@ $(document).ready(function () {
     socket.on('add calendar event response', function(msg) {
         console.log("HEY")
         msg = $.parseJSON(msg)
-        $("#date"+msg.day).empty()
+        console.log(msg)
+        $("#date"+msg.day).parent().empty()
         find_overlapping_dates(msg)
         create_calendar(msg)
     });

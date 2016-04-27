@@ -130,49 +130,17 @@ def get_non_overlapping_events_in_calendar(
 		Event.event_id
 	).all()
 
-
-# # edit event
-# # datetime value is obj's datetime
-# all_overlapping_events_b4_edit = db.session.query(Event.event_id).filter(
-#     Event.start_time <= datetime.datetime(2012, 9, 16, 1, 30),
-#     Event.end_time >= datetime.datetime(2012, 9, 16, 5, 30),
-# )
-# # def update (eventobj_event_id)
-# eventobj = db.session.query(Event).filter(
-#     Event.event_id == eventobj_event_id
-# ).one()
-
-# eventobj.start_time = a_new_start_time
-# eventobj.end_time = a_new_end_time
-
-# db.session.commit()
-
-# # turns red
-# all_overlapping_events_after_edit = db.session.query(Event.event_id).filter(
-#     Event.start_time <= eventobj.start_time,
-#     Event.end_time >= eventobj.end_time,
-# )
-
-# # turn black
-# all_overlaping_b4_edit_afterwards = db.session.query(
-#         Event.event_id
-#     ).filter(
-#         and_(
-#             # all things that were overlapping but are not anymore
-#             # give me everything that was overlapping before the edit
-#             Event.event_id.in_(all_overlapping_events_b4_edit),
-#             # 
-#             ~Event.event_id.in_(all_overlapping_events_after_edit)
-#             Event.calendar_url == "foo",
-#             event_alias1.calendar_url == "foo",
-#             Event.start_time >= datetime.datetime(2012, 9, 1, 0, 0),
-#             Event.end_time <= datetime.datetime(2012, 9, 30, 0, 0),
-#         )
-
-#     )
 if __name__ == "__main__":
     from flask import Flask
 
     app = Flask(__name__)
     connect_to_database(app)
+
+ #    foo = db.session.query(
+	# 	Event
+	# ).filter(
+	# 	Calendar.url == "hey",
+ #        Event.start_time >= month_start,
+ #        Event.end_time <= month_end,
+	# ).order_by(Event.start_time).all()
 
