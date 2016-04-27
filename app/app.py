@@ -56,10 +56,37 @@ def connect_to_calendar():
 
 # TODO: change name of event
 @socketio.on('join room', namespace='/calendar_app')
-def join_calendar_room(event):
+def join_calendar_room(events):
+    # response.json(events)
+    # print type(events), "####################"
+    calendar_event_dict = {}
 
-    join_room(event['calendarURL'])
-    emit('join room response', {'msg':"user has joined room " +event['calendarURL']})
+    all_events_in_calendar = get_all_events_for_calendar(
+        events['startMonthTimestampUTC'],
+        events['endMonthTimestampUTC'],
+        events['calendarURL'],
+    )
+
+    print events
+
+    for foo in all_events_in_calendar:
+        day = foo.start_time.day
+        event = {
+            'title': foo.title,
+            'startTimestampUTC': foo.start_time.isoformat(),
+            'endTimestampUTC': foo.end_time.isoformat(),
+            'title': foo.title,
+            'Id': foo.event_id,
+            'overlap': False,
+        }
+        calendar_event_dict.setdefault(day, [])
+        calendar_event_dict[day].append(event)
+
+    join_room(events['calendarURL'])
+
+    calendar_event_json = json.dumps(calendar_event_dict)
+
+    emit('join room response', calendar_event_json)
 
 @socketio.on('add calendar event', namespace='/calendar_app')
 def add_calendar_event(event):

@@ -10,6 +10,21 @@ var CalendarModule = (function (moment) {
         return displayDate
     }
 
+    calendarObj.startOfMonth1 = function () {
+        createdMonth = displayDate.clone().startOf('month');
+        return createdMonth.utc().format();
+    }
+
+    calendarObj.endOfMonth1 = function () {
+        createdMonth = displayDate.clone().endOf('month');
+        return createdMonth.utc().format();
+    }
+
+    calendarObj.currentMonth1 = function () {
+        createdMonth = displayDate.clone().startOf('month');
+        return createdMonth.utc().format("M");
+    }
+
     calendarObj.subtractMonth = function () {
         displayDate = displayDate.add(-1, "months");
         return displayDate
@@ -21,7 +36,6 @@ var CalendarModule = (function (moment) {
 
     calendarObj.getstartOfMonth = function () {
         var startOfMonth = displayDate.clone().startOf('month');
-        var startOfMonth2 = displayDate.clone()
         startOfMonth = moment(startOfMonth).format("d");
 
         return startOfMonth
@@ -68,7 +82,7 @@ var CalendarModule = (function (moment) {
             // move to multiline
             if (calendar_cell_cnt>= startOfMonthIndex && calendar_cell_cnt <= endOfCalendar){
                 calendar += "<div class='col-md-1 dated' data-date-of-month="+date+">"
-                    + date +"</div>";
+                    + "<p id='date"+date.toString()+"'>" + date +"</p>" +"</div>";
                 date++;
             } else {
                 calendar += "<div class='col-md-1'></div>";
@@ -104,6 +118,56 @@ $(document).ready(function () {
         );
 
         return updateDatetimeObj
+    }
+
+    // De Morgans Law
+    function find_overlapping_dates(events) {
+        for (var key in events) {
+
+          if (events.hasOwnProperty(key)) {
+            for(var i = 0; i < events[key].length; i++) {
+                var startDatetimeObj = moment(events[key][i]['startTimestampUTC']);
+                var endDatetimeObj = moment(events[key][i]['endTimestampUTC']);
+
+                for (var j=i+1; j < events[key].length; j++) {
+                    var compareStartDatetimeObj = moment(events[key][j]['startTimestampUTC']);
+                    var compareEndDatetimeObj = moment(events[key][j]['endTimestampUTC']);
+
+                    if (startDatetimeObj <= compareEndDatetimeObj
+                        && endDatetimeObj >= compareStartDatetimeObj) {
+                        console.log("hey")
+                        events[key][i]['overlap'] = true;
+                        events[key][j]['overlap'] = true;
+                    }
+
+                }
+            }
+
+          }
+        }
+    }
+
+    function update_calendar(events) {
+        for (var key in events) {
+
+          if (events.hasOwnProperty(key)) {
+                var $currentDate  = $("#date"+key).parent()
+
+                for(var i=0; i<events[key].length; i++) {
+                    anEvent = "<p>";
+                    anEvent += events[key][i]["startTimestampUTC"] + " : " +
+                       events[key][i]["endTimestampUTC"] + " - " +
+                       events[key][i]["title"] + "</p>"
+
+                    if (events[key][i]['overlap'] === true) {
+                        $(anEvent).appendTo("#date"+key).addClass('overlap')
+                    } else {
+                        $currentDate.append(anEvent)
+                    }
+                }    
+
+          }
+        }
     }
 
     $('#calendar').on('click', '.dated', function () {
@@ -163,9 +227,18 @@ $(document).ready(function () {
     });
 
     socket.on('connect', function() {
-        var calendarURL = $("#calendar").data("calendar-url")
-        // Todo move to function if used again
-        socket.emit("join room", {calendarURL: calendarURL})
+        var calendarURL = $("#calendar").data("calendar-url");
+        var startMonthTimestampUTC = CalendarModule.startOfMonth1()
+        var endMonthTimestampUTC = CalendarModule.endOfMonth1()
+        var currentMonth = CalendarModule.currentMonth1()
+
+        var calendarData = {
+            calendarURL: calendarURL,
+            startMonthTimestampUTC: startMonthTimestampUTC,
+            endMonthTimestampUTC: endMonthTimestampUTC,
+        }
+
+        socket.emit("join room", calendarData)
     });
 
     socket.on('add calendar event response', function(msg) {
@@ -173,7 +246,11 @@ $(document).ready(function () {
     });
 
     socket.on('join room response', function(msg) {
-        console.log(msg)
+        msg = $.parseJSON(msg)
+        find_overlapping_dates(msg)
+        update_calendar(msg)
+
+
     });
 
     // socket.on('leave room status', function(msg) {
