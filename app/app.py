@@ -1,11 +1,16 @@
 import jinja2
+import json
+# import response
 
+import dateutil.parser
+from datetime import datetime
+from collections import defaultdict
 from flask import flash, Flask, jsonify, redirect, request, render_template
 from flask.ext.bootstrap import Bootstrap
 from flask_socketio import emit, join_room, leave_room, send, SocketIO
 
 from forms import AddEventForm, CreateCalendarForm
-from logic import calender_exists, create_calendar, create_event
+from logic import calender_exists, create_calendar, create_event, get_all_events_for_calendar
 from model import connect_to_database
 
 
@@ -49,44 +54,49 @@ def calendar(calendar_url):
 def page_not_found(err):
     return render_template('404.html'), 404
 
-@socketio.on('connect', namespace='/calendar_app')
-def connect_to_calendar():
+# @socketio.on('connect', namespace='/calendar_app')
+# def connect_to_calendar():
 
-    emit('connection response', {'msg':"user has connected"})
+#     emit('connection response', {'msg':"user has connected"})
 
 # TODO: change name of event
 @socketio.on('join room', namespace='/calendar_app')
 def join_calendar_room(events):
-    # response.json(events)
-    # print type(events), "####################"
     calendar_event_dict = {}
 
+    print "DOONNNNEE"
+    print events['calendarURL'], "###########################3"
     all_events_in_calendar = get_all_events_for_calendar(
         events['startMonthTimestampUTC'],
         events['endMonthTimestampUTC'],
         events['calendarURL'],
     )
-
+    print all_events_in_calendar
     print events
 
     for foo in all_events_in_calendar:
         day = foo.start_time.day
         event = {
+            'day': day,
             'title': foo.title,
             'startTimestampUTC': foo.start_time.isoformat(),
             'endTimestampUTC': foo.end_time.isoformat(),
             'title': foo.title,
-            'Id': foo.event_id,
             'overlap': False,
         }
         calendar_event_dict.setdefault(day, [])
         calendar_event_dict[day].append(event)
 
-    join_room(events['calendarURL'])
+    room = join_room(events['calendarURL'])
 
     calendar_event_json = json.dumps(calendar_event_dict)
 
-    emit('join room response', calendar_event_json)
+    emit(
+        'join room response',
+        calendar_event_json,
+        broadcast=True,
+        room=events['calendarURL']
+    )
 
 @socketio.on('add calendar event', namespace='/calendar_app')
 def add_calendar_event(event):
@@ -98,15 +108,37 @@ def add_calendar_event(event):
         event['data']['calendarURL'],
     )
 
-    created_event = {
-        'event_id': created_event_obj.event_id,
-        'start_time': created_event_obj.start_time.isoformat(),
-        'end_time': created_event_obj.end_time.isoformat(),
-        'title': created_event_obj.title,
-        'calendar_url': created_event_obj.calendar_url,
-    }
+    events_in_calendar = get_all_events_for_calendar(
+        event['data']['startOfDay'],
+        event['data']['endOfDay'],
+        event['data']['calendarURL'],
+    )
+    calendar_event_dict = {}
 
-    emit('add calendar event response', created_event)
+    print events_in_calendar, "#############################"
+    for foo in events_in_calendar:
+        day = foo.start_time.day
+        event = {
+            'day': foo.start_time.day,
+            'title': foo.title,
+            'startTimestampUTC': foo.start_time.isoformat(),
+            'endTimestampUTC': foo.end_time.isoformat(),
+            'title': foo.title,
+            'overlap': False,
+        }
+
+        calendar_event_dict.setdefault(day, [])
+        calendar_event_dict[day].append(event)
+
+    create_event_json = json.dumps(calendar_event_dict)
+
+    print "EMIIIIRRRRRRRRRRRRRRRR"
+    emit(
+        'add calendar event response',
+        create_event_json,
+        broadcast=True,
+        room=event['data']['calendarURL']
+    )
 
 
 if __name__ == "__main__":
@@ -115,3 +147,4 @@ if __name__ == "__main__":
     socketio.run(app)
     app.run(debug=True)
 
+# foo = moment.date(u'2016-04-01T05:00:00Z', 'YYYY-M-D H:m:s')

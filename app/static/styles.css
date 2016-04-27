@@ -1,13 +1,20 @@
-body {
-	font-size: 6px;
-	/*background-color: green;*/
+#calendar {
+	font-size: 10px;
 }
-.row--calendar .col-md-1 {
-	min-height: 100px;
+
+.row--calendar div {
+	min-height: 200px;
 	width: 14.2857142857%;
 	border: 1px solid black;
 }
 
+/*.row--calendar .dated {
+	min-height: 200px;
+}
+*/
+.col--days {
+	min-height: 30px !important;
+}
 .overlap {
 	color: red;
 }

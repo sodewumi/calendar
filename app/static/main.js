@@ -10,6 +10,15 @@ var CalendarModule = (function (moment) {
         return displayDate
     }
 
+    calendarObj.startOfDay1 = function (dateObj) {
+        createdDay = dateObj.clone().startOf('day');
+        return createdDay.utc().format();
+    }
+    calendarObj.endOfDay1 = function (dateObj) {
+        createdDay = dateObj.clone().endOf('day');
+        return createdDay.utc().format();
+    }
+
     calendarObj.startOfMonth1 = function () {
         createdMonth = displayDate.clone().startOf('month');
         return createdMonth.utc().format();
@@ -54,7 +63,7 @@ var CalendarModule = (function (moment) {
 
         for( var i=0; i < daysOfWeek.length; i++) {
 
-          calendarDays += "<div class='col-md-1'> "+daysOfWeek[i] +"</div>";
+          calendarDays += "<div class='col-md-1 col--days'> "+daysOfWeek[i] +"</div>";
         }
 
         calendarDays += "</div>";
@@ -125,13 +134,18 @@ $(document).ready(function () {
         for (var key in events) {
 
           if (events.hasOwnProperty(key)) {
+            for(var k=0; k < events[key].length;k++) {
+                console.log(events[key][k])
+               events[key][k]['startTimestampUTC'] =  moment.utc(events[key][k]['startTimestampUTC']).local();
+                events[key][k]['endTimestampUTC'] = moment.utc(events[key][k]['endTimestampUTC']).local();
+            }
             for(var i = 0; i < events[key].length; i++) {
-                var startDatetimeObj = moment(events[key][i]['startTimestampUTC']);
-                var endDatetimeObj = moment(events[key][i]['endTimestampUTC']);
+                var startDatetimeObj = events[key][i]['startTimestampUTC'];
+                var endDatetimeObj = events[key][i]['endTimestampUTC'];
 
                 for (var j=i+1; j < events[key].length; j++) {
-                    var compareStartDatetimeObj = moment(events[key][j]['startTimestampUTC']);
-                    var compareEndDatetimeObj = moment(events[key][j]['endTimestampUTC']);
+                    var compareStartDatetimeObj = events[key][j]['startTimestampUTC'];
+                    var compareEndDatetimeObj = events[key][j]['endTimestampUTC'];
 
                     if (startDatetimeObj <= compareEndDatetimeObj
                         && endDatetimeObj >= compareStartDatetimeObj) {
@@ -147,16 +161,18 @@ $(document).ready(function () {
         }
     }
 
-    function update_calendar(events) {
+    function create_calendar(events) {
+        console.log(events)
         for (var key in events) {
 
           if (events.hasOwnProperty(key)) {
+            console.log(events[key])
                 var $currentDate  = $("#date"+key).parent()
 
                 for(var i=0; i<events[key].length; i++) {
                     anEvent = "<p>";
-                    anEvent += events[key][i]["startTimestampUTC"] + " : " +
-                       events[key][i]["endTimestampUTC"] + " - " +
+                    anEvent += events[key][i]["startTimestampUTC"].clone().format("h:mm") + " : " +
+                       events[key][i]["endTimestampUTC"].clone().format("h:mm") + " - " +
                        events[key][i]["title"] + "</p>"
 
                     if (events[key][i]['overlap'] === true) {
@@ -168,6 +184,25 @@ $(document).ready(function () {
 
           }
         }
+    }
+
+    function update_calendar(calendarEvent, key) {
+
+        var $currentDate  = $("#date"+key).parent()
+
+        for(var i=0; i<calendarEvent[key].length; i++) {
+            calendarEvent = "<p>";
+            calendarEvent += calendarEvent[key][i]["startTimestampUTC"] + " : " +
+               calendarEvent[key][i]["endTimestampUTC"] + " - " +
+               calendarEvent[key][i]["title"] + "</p>"
+
+            if (calendarEvent[key][i]['overlap'] === true) {
+                $(calendarEvent).appendTo("#date"+key).addClass('overlap')
+            } else {
+                $currentDate.append(anEvent)
+            }
+        } 
+
     }
 
     $('#calendar').on('click', '.dated', function () {
@@ -209,25 +244,33 @@ $(document).ready(function () {
         var endDatetimeObj = $('#end-time-input').data("DateTimePicker").date();
         var titleVal = $('#event_title').val();
         var calendarURL = $("#calendar").data("calendar-url");
+        console.log("calendarUrl")
+        console.log("#")
 
         var startDatetimeObj = updateDatetimeObjHourMin(dateClickedDatetimeObj, startDatetimeObj);
         var endDatetimeObj = updateDatetimeObjHourMin(dateClickedDatetimeObj, endDatetimeObj);
 
-        var startTimestampUTC = startDatetimeObj.utc().format();
-        var endTimestampUTC = endDatetimeObj.utc().format();
-
+        var startTimestampUTC = startDatetimeObj.clone().utc().format();
+        var endTimestampUTC = endDatetimeObj.clone().utc().format();
+        console.log("YEINSUDE")
+        console.log(CalendarModule.startOfMonth1(startDatetimeObj))
+        console.log(CalendarModule.endOfMonth1(startDatetimeObj))
         var eventObj = {data: {
             startTimestampUTC: startTimestampUTC,
             endTimestampUTC: endTimestampUTC,
             eventTitle: titleVal,
-            calendarURL: calendarURL
+            calendarURL: calendarURL,
+            startOfDay: CalendarModule.startOfDay1(startDatetimeObj),
+            endOfDay: CalendarModule.endOfDay1(endDatetimeObj)
         }};
-
+        $('#eventModal').modal('hide');
         socket.emit('add calendar event', eventObj);
     });
 
     socket.on('connect', function() {
         var calendarURL = $("#calendar").data("calendar-url");
+                console.log(calendarURL)
+        console.log("#")
         var startMonthTimestampUTC = CalendarModule.startOfMonth1()
         var endMonthTimestampUTC = CalendarModule.endOfMonth1()
         var currentMonth = CalendarModule.currentMonth1()
@@ -242,13 +285,17 @@ $(document).ready(function () {
     });
 
     socket.on('add calendar event response', function(msg) {
-        console.log(msg)
+        console.log("HEY")
+        msg = $.parseJSON(msg)
+        $("#date"+msg.day).empty()
+        find_overlapping_dates(msg)
+        create_calendar(msg)
     });
 
     socket.on('join room response', function(msg) {
         msg = $.parseJSON(msg)
         find_overlapping_dates(msg)
-        update_calendar(msg)
+        create_calendar(msg)
 
 
     });

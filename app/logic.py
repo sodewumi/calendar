@@ -33,6 +33,42 @@ def create_event(
 
 	return new_event
 
+# get_all_events_for_calendar(start, end, 'this')
+def get_all_events_for_calendar(
+	date_start,
+	date_end,
+	calendar_url,
+):
+	return db.session.query(
+		Event
+	).filter(
+		Event.calendar_url == calendar_url,
+        Event.start_time >= date_start,
+        Event.end_time <= date_end,
+	).order_by(Event.start_time).all()
+
+# def get_events_for_a_specific_day(
+# 	dateobj,
+# 	calendar_url
+# ):
+# 	return db.session.query(
+# 		Event
+# 	).filter(
+# 		Calendar.url == calendar_url,
+#         Event.start_time.day == dateobj.day,
+#         Event.start_time.month == dateobj.month,
+#         Event.start_time.year == dateobj.year,
+# 	).order_by(Event.start_time).all()
+def get_events_for_a_specific_day1(
+):
+	return db.session.query(
+		Event
+	).filter(
+		Calendar.url == "hey",
+        Event.start_time.day == 0,
+        Event.start_time.month == 4,
+        Event.start_time.year == 18,
+	).order_by(Event.start_time).all()
 def get_overlapping_events_object(
 	calendar_url,
 	start_time,
