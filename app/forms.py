@@ -5,7 +5,7 @@ class CreateCalendarForm(Form):
 	url = StringField('Calendar Name', [validators.Length(max=30), validators.Required()])
 	submit = SubmitField('Create!')
 
-# (TODO) add error handeling if event is longer than a day or start_time is ;ess
+# (TODO) add error handling if event is longer than a day or start_time is ;ess
 #  than end_time
 class AddEventForm(Form):
 	csrf = False

@@ -10,6 +10,7 @@ from flask.ext.bootstrap import Bootstrap
 from flask_socketio import emit, join_room, leave_room, send, SocketIO
 
 from forms import AddEventForm, CreateCalendarForm
+from helper import create_calendar_events
 from logic import calender_exists, create_calendar, create_event, get_all_events_for_calendar
 from model import connect_to_database
 
@@ -54,48 +55,27 @@ def calendar(calendar_url):
 def page_not_found(err):
     return render_template('404.html'), 404
 
-# @socketio.on('connect', namespace='/calendar_app')
-# def connect_to_calendar():
-
-#     emit('connection response', {'msg':"user has connected"})
-
 # TODO: change name of event
 @socketio.on('join room', namespace='/calendar_app')
 def join_calendar_room(events):
     calendar_event_dict = {}
 
-    print "DOONNNNEE"
-    print events['calendarURL'], "###########################3"
-    all_events_in_calendar = get_all_events_for_calendar(
+    events_in_calendar = get_all_events_for_calendar(
         events['startMonthTimestampUTC'],
         events['endMonthTimestampUTC'],
         events['calendarURL'],
     )
-    print all_events_in_calendar
-    print events
 
-    for foo in all_events_in_calendar:
-        day = foo.start_time.day
-        event = {
-            'day': day,
-            'title': foo.title,
-            'startTimestampUTC': foo.start_time.isoformat(),
-            'endTimestampUTC': foo.end_time.isoformat(),
-            'title': foo.title,
-            'overlap': False,
-        }
-        calendar_event_dict.setdefault(day, [])
-        calendar_event_dict[day].append(event)
+    room_code = events['calendarURL']
+    join_room(room_code)
 
-    room = join_room(events['calendarURL'])
-
-    calendar_event_json = json.dumps(calendar_event_dict)
+    calendar_event_json = create_calendar_events(events_in_calendar)
 
     emit(
         'join room response',
         calendar_event_json,
         broadcast=True,
-        room=events['calendarURL']
+        room=room_code,
     )
 
 @socketio.on('add calendar event', namespace='/calendar_app')
@@ -113,26 +93,10 @@ def add_calendar_event(event):
         event['data']['endOfDay'],
         event['data']['calendarURL'],
     )
-    calendar_event_dict = {}
-    print event
-    print events_in_calendar, "#############################"
-    for foo in events_in_calendar:
-        day = foo.start_time.day
-        calendar_event = {
-            'day': foo.start_time.day,
-            'title': foo.title,
-            'startTimestampUTC': foo.start_time.isoformat(),
-            'endTimestampUTC': foo.end_time.isoformat(),
-            'title': foo.title,
-            'overlap': False,
-        }
 
-        calendar_event_dict.setdefault(day, [])
-        calendar_event_dict[day].append(calendar_event)
+    create_event_json = create_calendar_events(events_in_calendar)
+    room_code = event['data']['calendarURL']
 
-    create_event_json = json.dumps(calendar_event_dict)
-
-    print "EMIIIIRRRRRRRRRRRRRRRR"
     emit(
         'add calendar event response',
         create_event_json,
@@ -140,11 +104,19 @@ def add_calendar_event(event):
         room=event['data']['calendarURL']
     )
 
+@socketio.on('leave room', namespace='/calendar_app')
+def leave_calendar_room(room):
+    leave_room(room['room'])
+
+    emit(
+        'leave room response',
+        {'msg': "left room" + room['room']},
+        broadcast=True,
+        room=room['room'],
+    )
 
 if __name__ == "__main__":
     connect_to_database(app)
     Bootstrap(app)
     socketio.run(app)
     app.run(debug=True)
-
-# foo = moment.date(u'2016-04-01T05:00:00Z', 'YYYY-M-D H:m:s')
